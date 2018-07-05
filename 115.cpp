@@ -16,7 +16,6 @@
     <author> <time> <version > <desc>
     David 18/70/1 1.0 build this moudle
 ***********************************************************/ 
-#include<iostream>
 #include <stdio.h>
 #include <conio.h>
 #include <string.h>
@@ -24,22 +23,19 @@
 #include<windows.h>
 struct worker
 {
+    char num[10];//职工工号
+    char name[30];//职工姓名
+    float gwgz;//岗位工资
+    float xjsz;//薪级工资
+    float zwjt;//职务津贴
+    float xjgz;//效绩工资
+    float yfgz;//应发工资
+    float grsds;//个人所得税
+    float salary;//实发工资
 
-    char num[10];
-    char name[30];
-    float gwgz;
-    float xjsz;
-    float zwjt;
-    float xjgz;
-    float yfgz;
-    float grsds;
-    float salary;
+}zggz[100];/*定义结构体数组zggz*/
 
-}zggz[100],*p;/*定义结构体数组zggz*/
-
-    int n=0; /*记录总的职工人数*/
-
-    int i,j,m,sum[100],num[100]; 
+    int n=0; /*记录总的职工人数*/ 
 
     float grsds(int m);
 
@@ -57,11 +53,10 @@ struct worker
 void read()
 {
 
-	int i=0;
+	int i=0, nRes;
        FILE *fp;/*定义文件指针*/
-	   p=zggz;
 
-       if ((fp = fopen("gx.dat", "rt+")) == NULL)
+       if ((fp = fopen("gx.dat", "rb")) == NULL)
 
        {
 
@@ -70,18 +65,20 @@ void read()
               exit(-1);
 
        }
-
-       while (!feof(fp))
+       printf("文件打开成功\n");
+       for(i = 0; i<100; i++)
 
        {
-		      printf("文件打开成功\n");
-			  fscanf(fp,"%s %s %f %f %f %f %f %f %f\n",&(p[i].num),&(p[i].name),&(p[i].gwgz),&(p[i].xjsz),&(p[i].zwjt),&(p[i].xjgz),&(p[i].yfgz),&(p[i].grsds),&(p[i].salary));
+			 nRes = fscanf(fp,"%s %s %f %f %f %f",zggz[i].num,zggz[i].name,&(zggz[i].gwgz),&(zggz[i].xjsz),&(zggz[i].zwjt),&(zggz[i].xjgz));
 			  zggz[i].yfgz=zggz[i].gwgz+zggz[i].xjsz+zggz[i].zwjt+zggz[i].xjgz;
-              grsds(zggz[i].yfgz);
-		      zggz[i].salary=zggz[i].yfgz-zggz[i].grsds;
-              printf("%s %s %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f\n",p[i].num,p[i].name,p[i].gwgz,p[i].xjsz,p[i].zwjt,p[i].xjgz,p[i].yfgz,p[i].grsds,p[i].salary); 
-              i++;
-			  n=i;
+              grsds(i);/*调用个人所得税*/
+		      zggz[i].salary=zggz[i].yfgz-grsds(zggz[i].yfgz);
+              //printf("%s\t %s\t %5.1f\t %5.1f\t %5.1f\t %5.1f\t %5.1f\t %5.1f\t %5.1f\t\n",p[i].num,p[i].name,p[i].gwgz,p[i].xjsz,p[i].zwjt,p[i].xjgz,p[i].yfgz,p[i].grsds,p[i].salary); 
+            if(nRes == -1)
+			{
+				n=i;
+				break;
+			}
 	   }
        
        printf("\n有%d个员工信息被读入\n",n);
@@ -90,6 +87,7 @@ void read()
 
        
 }
+
 /*************************************************
      Function: write
      Description: 保存函数
@@ -107,17 +105,20 @@ void write()
 
     int i;
     FILE*fp;
-    if ((fp=fopen("gx.dat","wb"))==NULL)  /*创建文件并判断是否能打开*/
+    if ((fp=fopen("gx.dat","wb+"))==NULL)/*创建文件并判断是否能打开*/
     {
 
-         printf ("cannot open file\n");
+         printf("cannot open file\n");
          exit(0);
 
     }
-         for (i=0;i<n;i++) /*将内存中职工的信息输出到磁盘文件中去*/
-         if (fwrite(&zggz,sizeof(struct worker),1,fp)!=1)
-         printf("保存成功！！");
-         fclose(fp);
+    for(i=0;i<n;i++) /*将内存中职工的信息输出到磁盘文件中去*/
+    {
+	    fwrite(&zggz[i],sizeof(struct worker),1,fp);
+         
+	}
+	fclose(fp);
+	printf("保存成功！！");
 }
 
 /*************************************************
@@ -142,14 +143,14 @@ void find()
     printf("请输入要查找职工工号:");
     scanf("%s",gonghao);
     system("cls");
-    printf("\t姓名\t工号\t岗位工资\t薪级工资\t职务工资\t校绩工资\t应发工资\t个人所得税\t实发工资\n");
+    printf("工号\t\t 姓名\t\t岗位工资\t薪级工资\t 职务工资\t校绩工资\t应发工资\t个人所得税\t实发工资\n");
     for (i=0;i<n;i++)
 
 	{
         if (strcmp(gonghao,zggz[i].num)==0)
 
 		{
-            printf("%s %s %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f\n",zggz[i].num,zggz[i].name,zggz[i].gwgz,zggz[i].xjsz,zggz[i].zwjt,zggz[i].xjgz,zggz[i].yfgz,zggz[i].grsds,zggz[i].salary);
+            printf("%-10s\t %-10s\t %-10.1f\t %-10.1f\t %-10.1f\t %-10.1f\t %-10.1f\t %-10.1f\t %-10.1f\t\n",zggz[i].num,zggz[i].name,zggz[i].gwgz,zggz[i].xjsz,zggz[i].zwjt,zggz[i].xjgz,zggz[i].yfgz,zggz[i].grsds,zggz[i].salary);
 	
 		}
 	}
@@ -212,16 +213,21 @@ void add()
 /*预览职工信息*/
 void list( ) 
 {
-    int i=1;
+	system("cls");
+    int i=0;
     printf("以下是全部职工\n");
 	
-    printf("\t工号\t姓名\t岗位工资\t薪级工资\t职务工资\t校绩工资\t应发工资\t个人所得税\t实发工资\n");
+    printf("工号\t\t 姓名\t\t岗位工资\t薪级工资\t 职务工资\t校绩工资\t应发工资\t个人所得税\t实发工资\n");
     while(i<n)
 	{
 		 zggz[i].yfgz=(zggz[i].gwgz+zggz[i].xjsz+zggz[i].zwjt+zggz[i].xjgz);/*计算应发工资*/
 		 grsds(i);/*调用个人所得税函数*/
 		 zggz[i].salary=zggz[i].yfgz-zggz[i].grsds;/*计算实发工资*/
-         printf("%s %s %.2f %.2f %.2f %.2f %.2f %.2f %.2f\n",zggz[i].num,zggz[i].name,zggz[i].gwgz,zggz[i].xjsz,zggz[i].zwjt,zggz[i].xjgz,zggz[i].yfgz,zggz[i].grsds,zggz[i].salary);
+         printf("%-10s\t %-10s\t %-10.2f\t %-10.2f\t %-10.2f\t %-10.2f\t %-10.2f\t %-10.2f\t %-10.2f\t\n",
+			 zggz[i].num,zggz[i].name,zggz[i].gwgz,zggz[i].xjsz,
+			 zggz[i].zwjt,zggz[i].xjgz,
+			 zggz[i].yfgz,zggz[i].grsds,
+			 zggz[i].salary);
          i++;
 	}
 	
@@ -256,8 +262,8 @@ void modify()
 		{
 
 			printf("\n已找到此人，原始记录为：\n");
-            printf("\t工号\t姓名\t岗位工资\t薪级工资\t职务工资\t校绩工资\t应发工资\t个人所得税\t实发工资\n");/*显示所有修改的职工信息*/
-            printf("%s %s %.2f %.2f %.2f %.2f %.2f %.2f %.2f\n",zggz[m].num,zggz[m].name,zggz[m].gwgz,zggz[m].xjsz,zggz[m].zwjt,zggz[m].xjgz,zggz[m].yfgz,zggz[m].grsds,zggz[m].salary);
+            printf("工号\t\t 姓名\t\t岗位工资\t薪级工资\t 职务工资\t校绩工资\t应发工资\t个人所得税\t实发工资\n");/*显示所有修改的职工信息*/
+            printf("%-10s\t %-10s\t %-10.2f\t %-10.2f\t %-10.2f\t %-10.2f\t %-10.2f\t %-10.2f\t %-10.2f\t\n",zggz[m].num,zggz[m].name,zggz[m].gwgz,zggz[m].xjsz,zggz[m].zwjt,zggz[m].xjgz,zggz[m].yfgz,zggz[m].grsds,zggz[m].salary);
             printf("\n确实要修改此人信息请按1\n");
             scanf("%d",&f);
 			if(f==1)
@@ -276,12 +282,12 @@ void modify()
                 printf("职务工资：");
                 scanf("%f",&zggz[i].zwjt);
                 printf("校绩工资：");
-	    	    scanf("%f",&zggz[i].xjgz);
-
-                write();
-		
+	    	    scanf("%f",&zggz[i].xjgz);   
+		        write();
+			    printf("修改成功\n");
+				break;
 			}
-
+            
 		}
 
 	}       
@@ -318,8 +324,8 @@ void del()
 
 		{
 	        printf("\n已找到此人，原始记录为：\n");
-            printf("\t工号\t姓名\t岗位工资\t薪级工资\t职务工资\t校绩工资\t应发工资\t个人所得税\t实发工资\n");/*显示所有删除的职工信息*/
-            printf("%s %s %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f\n",zggz[i].num,zggz[i].name,zggz[i].gwgz,zggz[i].xjsz,zggz[i].zwjt,zggz[i].xjgz,zggz[i].yfgz,zggz[i].grsds,zggz[i].salary);
+            printf("工号\t\t 姓名\t\t岗位工资\t薪级工资\t 职务工资\t校绩工资\t应发工资\t个人所得税\t实发工资\n");/*显示所有删除的职工信息*/
+            printf("%-10s\t %-10s\t %-10.1f\t %-10.1f\t %-10.1f\t %-10.1f\t %-10.1f\t %-10.1f\t %-10.1f\t\n",zggz[i].num,zggz[i].name,zggz[i].gwgz,zggz[i].xjsz,zggz[i].zwjt,zggz[i].xjgz,zggz[i].yfgz,zggz[i].grsds,zggz[i].salary);
  
             printf("\n确实要删除此人信息请按1\n");
             scanf("%d",&f);
@@ -338,16 +344,16 @@ void del()
 
         write();
 
-        printf("删除成功;\n");
-
+        
 	}
+	printf("删除成功;\n");
 }
 
 /*************************************************
-     Function: 删除职工信息
-     Description: 删除不要的职工信息
+     Function: 计算个人所得税
+     Description: 按照应发工资的多少和税收表的税率来计算
      Calls: 
-     Called By:
+     Called By:read(),list()
      Table Accessed: // 被访问的表（此项仅对于牵扯到数据库操作的程序）
      Table Updated: // 被修改的表（此项仅对于牵扯到数据库操作的程序）
      Input: // 输入参数说明，包括每个参数的
@@ -360,37 +366,44 @@ void del()
 /* 计算个人所得税 */
 float grsds(int i)
 {
-	
-		if(zggz[i].yfgz<=500)/*低于500的税收*/
+	if(zggz[i].yfgz<=500)/*低于500的税收*/
+	{
 		zggz[i].grsds=zggz[i].yfgz*0.05;
+	}
+	else if(zggz[i].yfgz<=2000)/*低于2000的税收*/
+	{
+		zggz[i].grsds=(zggz[i].yfgz-500)*0.10+500*0.05;
+	}
+    else if(zggz[i].yfgz<=5000)/*低于5000的税收*/
+    {
+		zggz[i].grsds=(zggz[i].yfgz-2000)*0.15+1500*0.10+500*0.05;
+	}
+    else if(zggz[i].yfgz<=20000)/*低于20000的税收*/
+	{
+		zggz[i].grsds=(zggz[i].yfgz-5000)*0.20+3000*0.15+1500*0.10+zggz[i].yfgz*0.05;
+	}
+    else if(zggz[i].yfgz<=40000)/*低于40000的税收*/
+    {
+		zggz[i].grsds=(zggz[i].yfgz-20000)*0.25+15000*0.20+3000*0.15+1500*0.10+500*0.05;
+	}
+    else if(zggz[i].yfgz<=60000)/*低于60000的税收*/
+    {
+		zggz[i].grsds=(zggz[i].yfgz-40000)*0.30+20000*0.25+15000*0.20+3000*0.15+1500*0.10+500*0.05;
+	}
+    else if(zggz[i].yfgz<=80000)/*低于80000的税收*/
+    {
+		zggz[i].grsds=(zggz[i].yfgz-60000)*0.35+20000*0.30+20000*0.25+15000*0.20+3000*0.15+1500*0.10+500*0.05;
+	}
 
-		    else if(zggz[i].yfgz<=2000)/*低于2000的税收*/
-		    zggz[i].grsds=(zggz[i].yfgz-500)*0.10+500*0.05;
-
-                else if(zggz[i].yfgz<=5000)/*低于5000的税收*/
-                zggz[i].grsds=(zggz[i].yfgz-2000)*0.15+1500*0.10+500*0.05;
-
-                    else if(zggz[i].yfgz<=20000)/*低于20000的税收*/
-	                zggz[i].grsds=(zggz[i].yfgz-5000)*0.20+3000*0.15+1500*0.10+zggz[i].yfgz*0.05;
-
-                        else if(zggz[i].yfgz<=40000)/*低于40000的税收*/
-                        zggz[i].grsds=(zggz[i].yfgz-20000)*0.25+15000*0.20+3000*0.15+1500*0.10+500*0.05;
-
-                            else if(zggz[i].yfgz<=60000)/*低于60000的税收*/
-                            zggz[i].grsds=(zggz[i].yfgz-40000)*0.30+20000*0.25+15000*0.20+3000*0.15+1500*0.10+500*0.05;
-
-                                else if(zggz[i].yfgz<=80000)/*低于80000的税收*/
-                                zggz[i].grsds=(zggz[i].yfgz-60000)*0.35+20000*0.30+20000*0.25+15000*0.20+3000*0.15+1500*0.10+500*0.05;
-
-
-                                    else if(zggz[i].yfgz<=100000)/*低于100000的税收*/
-                                    zggz[i].grsds=(zggz[i].yfgz-80000)*0.40+2000*0.35+20000*0.30+20000*0.25+15000*0.20+3000*0.15+1500*0.10+500*0.05;
-                                          
+    else if(zggz[i].yfgz<=100000)/*低于100000的税收*/
+	{
+		zggz[i].grsds=(zggz[i].yfgz-80000)*0.40+2000*0.35+20000*0.30+20000*0.25+15000*0.20+3000*0.15+1500*0.10+500*0.05;
+	}                                  
 									     /*高于100000的税收*/
-                                         else zggz[i].grsds=(zggz[i].yfgz-80000)*0.45+20000*0.40+2000*0.35+20000*0.30+20000*0.25+15000*0.20+3000*0.15+1500*0.10+500*0.05;
+    else zggz[i].grsds=(zggz[i].yfgz-100000)*0.45+20000*0.40+2000*0.35+20000*0.30+20000*0.25+15000*0.20+3000*0.15+1500*0.10+500*0.05;
 	
 
-                                              return zggz[i].grsds;/*返回个人所得税的值*/
+        return zggz[i].grsds;/*返回个人所得税的值*/
 }
 
 /*主函数*/
@@ -418,7 +431,7 @@ void main()
          printf("\t\n");
 		 printf("\t\t你的请选择是：");
          scanf("%d",&choose);
-         system("cls");
+         //system("cls");
              switch(choose)
 			 {
                  case 1: find();/*查找职工信息 */
@@ -426,6 +439,7 @@ void main()
 
                  case 2: modify();/*修改职工信息*/
                  
+                 break;
                  case 3: add();/*添加职工信息*/
                  break; 
 
@@ -439,7 +453,6 @@ void main()
                  break; 
 
                  case 7: exit(0);/*退出*/
-                 break;
                  break;
                  default:
                  break;
